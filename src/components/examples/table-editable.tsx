@@ -17,8 +17,9 @@ export function CustomCells({data}:{data?:Persona[]}){
   const [edit,setEdit]=useState<Persona|null>(null)
   const [motivo,setMotivo]=useState("")
   const [target,setTarget]=useState<Persona|null>(null)
-  const source=data !== undefined ? data : defaultPersonas
-  const sorted=useMemo(()=>[...source].sort((a,b)=>{let c=String(a[sd.column as keyof Persona]).localeCompare(String(b[sd.column as keyof Persona])); if(sd.direction==="descending") c*=-1; return c;}),[sd]);
+  const source=(data !== undefined ? data : defaultPersonas) as Persona[]
+  const isEmpty = data !== undefined && data.length===0
+  const sorted=useMemo(()=>[...source].sort((a,b)=>{let c=String(a[sd.column as keyof Persona]).localeCompare(String(b[sd.column as keyof Persona])); if(sd.direction==="descending") c*=-1; return c;}),[sd, source]);
   return (
     <>
     <Table>
@@ -35,7 +36,7 @@ export function CustomCells({data}:{data?:Persona[]}){
             <Table.Column className="text-end">Acciones</Table.Column>
           </Table.Header>
           <Table.Body>
-            {sorted.map(u=>(
+            {isEmpty ? <Table.Row><Table.Cell colSpan={8} className="text-center py-8 text-sm text-muted">Sin registros — crea el primero</Table.Cell></Table.Row> : sorted.map(u=>(
               <Table.Row key={u.id} id={u.id}>
                 <Table.Cell className="pe-0"><Checkbox aria-label={u.nombre} slot="selection" variant="secondary"><Checkbox.Content><Checkbox.Control><Checkbox.Indicator/></Checkbox.Control></Checkbox.Content></Checkbox></Table.Cell>
                 <Table.Cell><div className="flex items-center gap-3"><Avatar size="sm"><Avatar.Image src={u.avatar}/><Avatar.Fallback>{u.nombre.split(" ").map(n=>n[0]).join("")}</Avatar.Fallback></Avatar><span className="text-sm font-medium">{u.nombre}</span></div></Table.Cell>

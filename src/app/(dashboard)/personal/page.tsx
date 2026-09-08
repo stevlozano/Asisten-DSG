@@ -75,7 +75,7 @@ export default function PersonalPage(){
         </div>
         <TanstackTable data={filtered as any}/>
       </Tabs.Panel>
-      <Tabs.Panel id="gestion" className="pt-4"><CustomCells/></Tabs.Panel>
+      <Tabs.Panel id="gestion" className="pt-4"><CustomCells data={filtered as any}/></Tabs.Panel>
     </Tabs>
     <Modal isOpen={confirmOpen} onOpenChange={setConfirmOpen}><Modal.Backdrop><Modal.Container size="md"><Modal.Dialog><Modal.CloseTrigger/><Modal.Header><Modal.Heading>¿Eliminar todo el personal?</Modal.Heading><p className="text-sm text-muted">Esta acción se audita y elimina a todos de todas las tablas y del sistema. No se puede deshacer.</p></Modal.Header><Modal.Footer><Button variant="secondary" onPress={()=>setConfirmOpen(false)}>Cancelar</Button><Button variant="danger" onPress={async()=>{ const {error}=await supabase.from("profiles").delete().eq("company_id",COMPANY_ID); if(error) return toast.error(error.message); toast.success("Eliminado"); setConfirmOpen(false); fetchAll()}}>Eliminar todo</Button></Modal.Footer></Modal.Dialog></Modal.Container></Modal.Backdrop></Modal>
     <Modal isOpen={open} onOpenChange={setOpen}>
