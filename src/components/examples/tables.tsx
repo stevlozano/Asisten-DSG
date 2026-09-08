@@ -31,7 +31,8 @@ function toSS(d:SortDescriptor):SortingState{ return [{id:d.column as string, de
 const PAGE=4;
 export function TanstackTable({data}:{data?:Persona[]}){
   const [sorting,setSorting]=useState<SortingState>([]);
-  const source=data !== undefined ? data : defaultPersonas
+  const source=(data !== undefined ? data : defaultPersonas) as Persona[]
+  const isEmpty = data !== undefined && data.length===0
   const table=useTable({ columns, data:source, features, initialState:{pagination:{pageIndex:0,pageSize:PAGE}}, onSortingChange:setSorting, state:{sorting}});
   const sd=useMemo(()=>toSD(sorting),[sorting]);
   const {pageIndex}=table.state.pagination; const pc=table.getPageCount(); const pages=Array.from({length:pc},(_,i)=>i+1); const s=pageIndex*PAGE+1; const e=Math.min((pageIndex+1)*PAGE, source.length);
@@ -39,7 +40,7 @@ export function TanstackTable({data}:{data?:Persona[]}){
     <Table>
       <Table.ScrollContainer><Table.Content aria-label="Personal" className="min-w-[720px]" sortDescriptor={sd} onSortChange={d=>setSorting(toSS(d))}>
           <Table.Header>{table.getHeaderGroups()[0]?.headers.map(h=>(<Table.Column key={h.id} allowsSorting={h.column.getCanSort()} id={h.id} isRowHeader={h.id==="nombre"}>{({sortDirection})=><Table.SortableColumnHeader sortDirection={sortDirection}>{flexRender(h.column.columnDef.header, h.getContext())}</Table.SortableColumnHeader>}</Table.Column>))}</Table.Header>
-          <Table.Body>{table.getRowModel().rows.map(r=>(<Table.Row key={r.id} id={r.id}>{r.getAllCells().map(c=>(<Table.Cell key={c.id}>{flexRender(c.column.columnDef.cell, c.getContext())}</Table.Cell>))}</Table.Row>))}</Table.Body>
+          <Table.Body>{isEmpty ? <Table.Row><Table.Cell colSpan={columns.length} className="text-center py-8 text-sm text-muted">Sin registros — crea el primero</Table.Cell></Table.Row> : table.getRowModel().rows.map(r=>(<Table.Row key={r.id} id={r.id}>{r.getAllCells().map(c=>(<Table.Cell key={c.id}>{flexRender(c.column.columnDef.cell, c.getContext())}</Table.Cell>))}</Table.Row>))}</Table.Body>
         </Table.Content></Table.ScrollContainer>
       <Table.Footer><Pagination size="sm"><Pagination.Summary>{s} a {e} de {source.length}</Pagination.Summary><Pagination.Content><Pagination.Item><Pagination.Previous isDisabled={!table.getCanPreviousPage()} onPress={()=>table.previousPage()}><Pagination.PreviousIcon/>Ant</Pagination.Previous></Pagination.Item>{pages.map(p=><Pagination.Item key={p}><Pagination.Link isActive={p===pageIndex+1} onPress={()=>table.setPageIndex(p-1)}>{p}</Pagination.Link></Pagination.Item>)}<Pagination.Item><Pagination.Next isDisabled={!table.getCanNextPage()} onPress={()=>table.nextPage()}>Sig<Pagination.NextIcon/></Pagination.Next></Pagination.Item></Pagination.Content></Pagination></Table.Footer>
     </Table>
