@@ -41,15 +41,24 @@ export default function PersonalPage(){
 
   const handleCreate=async()=>{
     if(!form.nombres || !form.apellidos) return toast.error("Nombres y apellidos requeridos")
-    const payload={ company_id:COMPANY_ID, dni:form.dni||null, nombres:form.nombres, apellidos:form.apellidos, email:email||null, movil:form.movil||null, tipo, area:form.area, cargo:form.cargo, estado:"Activo" } as any
+    const base={ company_id:COMPANY_ID, dni:form.dni||null, nombres:form.nombres, apellidos:form.apellidos, email:email||null, movil:form.movil||null, tipo, area:form.area, cargo:form.cargo, estado:"Activo" } as any
     if(edit){
-      const {error}=await supabase.from("profiles").update({ ...payload, company_id:undefined }).eq("id",edit.id)
+      const {error}=await supabase.from("profiles").update({ ...base, company_id:undefined }).eq("id",edit.id)
       if(error) return toast.error(error.message)
       toast.success("Actualizado")
     } else {
-      const {error}=await supabase.from("profiles").insert(payload)
-      if(error) return toast.error(error.message)
-      toast.success("Creado — acceso: "+email+" / "+pass)
+      let {error}=await supabase.from("profiles").insert(base)
+      if(error && error.message.includes("profiles_id_fkey")){
+        // FK aún exige auth.users — crea el usuario auth primero
+        const {data:sign, error:signErr}=await supabase.auth.signUp({email: email, password: pass, options:{data:{nombres:form.nombres, apellidos:form.apellidos}}})
+        if(signErr) return toast.error("FK activa: ejecuta la migración 00002 o habilita Auth. Detalle: "+signErr.message)
+        const uid=sign.user?.id
+        if(!uid) return toast.error("No se pudo crear auth user")
+        const {error:e2}=await supabase.from("profiles").insert({...base, id:uid})
+        if(e2) return toast.error(e2.message)
+        toast.success("Creado vía Auth — acceso: "+email+" / "+pass)
+      } else if(error) return toast.error(error.message)
+      else toast.success("Creado — acceso: "+email+" / "+pass)
     }
     setOpen(false); setEdit(null); setForm({dni:"",nombres:"",apellidos:"",movil:"",area:"Desarrollo",cargo:"",horario:"08:00-17:00"}); fetchAll()
   }
