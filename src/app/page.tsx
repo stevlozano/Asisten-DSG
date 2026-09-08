@@ -31,8 +31,11 @@ export default function Page(){
       const {count:admins}=await supabase.from("profiles").select("*",{count:"exact",head:true}).eq("rol","admin")
       const {count:personal}=await supabase.from("profiles").select("*",{count:"exact",head:true})
       const {count:proyectos}=await supabase.from("proyectos").select("*",{count:"exact",head:true})
+      const {count:asistencias}=await supabase.from("asistencias").select("*",{count:"exact",head:true})
+      const {count:incidencias}=await supabase.from("incidencias").select("*",{count:"exact",head:true})
+      const {count:horarios}=await supabase.from("horarios").select("*",{count:"exact",head:true})
       const {data:acts}=await supabase.from("audit_logs").select("*").order("created_at",{ascending:false}).limit(5)
-      setExtra({companies, admins, personal, proyectos, activities:(acts||[]).map((a:any)=>({ id:a.id, title:`${a.accion} ${a.tabla}`, description:a.motivo||"", time:new Date(a.created_at).toLocaleTimeString("es-PE",{hour:"2-digit",minute:"2-digit"}), icon: Activity }))})
+      setExtra({companies, admins, personal, proyectos, asistencias, incidencias, horarios, activities:(acts||[]).map((a:any)=>({ id:a.id, title:`${a.accion} ${a.tabla}`, description:a.motivo||"", time:new Date(a.created_at).toLocaleTimeString("es-PE",{hour:"2-digit",minute:"2-digit"}), icon: Activity }))})
       return
     }
     if(rol==="empleado"||rol==="practicante"){
