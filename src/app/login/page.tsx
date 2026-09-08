@@ -2,18 +2,12 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
-import { Eye, EyeOff, Clock, Shield, Users, UserCheck, AlertTriangle, ArrowRight } from "lucide-react"
+import { Eye, EyeOff, Clock, Shield, Users, UserCheck, ArrowRight } from "lucide-react"
 
 const CREDS = [
   { role: "Administrador", email: "admin@asisten-dsg.pe", pass: "Admin123*", icon: Shield },
   { role: "Supervisor", email: "supervisor@asisten-dsg.pe", pass: "Super123*", icon: Users },
   { role: "RRHH", email: "rrhh@asisten-dsg.pe", pass: "Rrhh123*", icon: UserCheck },
-]
-
-const stats = [
-  { label:"Personal", value:"42", icon: Users },
-  { label:"Presentes", value:"35", icon: UserCheck },
-  { label:"Incidencias", value:"7", icon: AlertTriangle },
 ]
 
 export default function LoginPage(){
@@ -53,18 +47,6 @@ export default function LoginPage(){
           <motion.div variants={item} className="space-y-1">
             <h1 className="text-[26px] font-bold tracking-tight leading-none">Ingresar</h1>
             <p className="text-sm text-black/60 dark:text-white/60">Control diario — asistencia genera incidencia, no descuento automático.</p>
-          </motion.div>
-
-          {/* mini metrics bar - consistency with dashboard */}
-          <motion.div variants={item} className="grid grid-cols-3 gap-px rounded-2xl overflow-hidden bg-black/10 dark:bg-white/10">
-            {stats.map(s=>{
-              const I=s.icon
-              return <div key={s.label} className="bg-zinc-100 dark:bg-zinc-900 p-3 text-center">
-                <I className="h-3.5 w-3.5 mx-auto text-black/40 dark:text-white/40 mb-1"/>
-                <p className="text-sm font-bold leading-none">{s.value}</p>
-                <p className="text-[10px] uppercase tracking-wider text-black/40 dark:text-white/40">{s.label}</p>
-              </div>
-            })}
           </motion.div>
 
           <motion.form variants={item} onSubmit={handleLogin} className="space-y-3">
