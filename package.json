@@ -13,6 +13,7 @@
     "@heroui/react": "^3.2.4",
     "@hookform/resolvers": "^5.9.1",
     "@iconify/react": "^6.0.2",
+    "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.116.0",
     "@tanstack/react-table": "^9.2.4",
     "class-variance-authority": "^0.7.1",
