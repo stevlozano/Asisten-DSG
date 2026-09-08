@@ -5,6 +5,7 @@ import { motion } from "framer-motion"
 import { Eye, EyeOff, Clock, Shield, Users, UserCheck, ArrowRight } from "lucide-react"
 
 const CREDS = [
+  { role: "DEV", email: "dev@asisten-dsg.pe", pass: "Dev123*", icon: Shield },
   { role: "Administrador", email: "admin@asisten-dsg.pe", pass: "Admin123*", icon: Shield },
   { role: "Supervisor", email: "supervisor@asisten-dsg.pe", pass: "Super123*", icon: Users },
   { role: "RRHH", email: "rrhh@asisten-dsg.pe", pass: "Rrhh123*", icon: UserCheck },
@@ -23,7 +24,8 @@ export default function LoginPage(){
     const found = CREDS.find(c=> c.email.toLowerCase()===email.trim().toLowerCase() && c.pass===pass)
     if(!found){ setErr("Credenciales incorrectas. Usa una de las de prueba."); return }
     setLoading(true)
-    localStorage.setItem("asisten-auth", JSON.stringify(found))
+    const auth={...found, rol: found.role==="DEV"?"dev": found.role==="Administrador"?"admin": found.role==="Supervisor"?"admin":"admin", nombres: found.role}
+    localStorage.setItem("asisten-auth", JSON.stringify(auth))
     setTimeout(()=> router.push("/"), 400)
   }
   function fill(c:typeof CREDS[0]){ setEmail(c.email); setPass(c.pass); setErr("") }
