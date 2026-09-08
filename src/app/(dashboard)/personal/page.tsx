@@ -8,7 +8,7 @@ import { CustomCells } from "@/components/examples/table-editable"
 import { supabase } from "@/lib/supabase"
 import { toast } from "sonner"
 
-const COMPANY_ID="00000000-0000-0000-0000-000000000001"
+const FALLBACK_COMPANY="00000000-0000-0000-0000-000000000001"
 function genEmail(nombre:string){
   const clean=nombre.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z ]/g,"").trim().replace(/\s+/g,".")
   return clean ? `${clean}@dsg.pe` : ""
@@ -16,6 +16,7 @@ function genEmail(nombre:string){
 function genPass(){ return Math.random().toString(36).slice(-8) + "A1!" }
 
 export default function PersonalPage(){
+  const [companyId,setCompanyId]=useState(FALLBACK_COMPANY)
   const [q,setQ]=useState("")
   const [personas,setPersonas]=useState<any[]>([])
   const [open,setOpen]=useState(false)
@@ -27,17 +28,29 @@ export default function PersonalPage(){
   const pass=useMemo(()=> genPass(),[open])
   const [confirmOpen,setConfirmOpen]=useState(false)
 
-  const fetchAll=async()=>{
-    const {data,error}=await supabase.from("profiles").select("*").eq("company_id",COMPANY_ID).order("created_at",{ascending:false})
+  const fetchAll=async(cid?:string)=>{
+    const id=cid||companyId
+    const {data,error}=await supabase.from("profiles").select("*").eq("company_id",id).neq("rol","dev").order("created_at",{ascending:false})
     if(error){ toast.error(error.message); return }
     setPersonas((data||[]).map((r:any,i:number)=>({ id:r.id, nombre:`${r.nombres} ${r.apellidos}`, tipo:r.tipo, area:r.area||"", cargo:r.cargo||"", horario:"08:00-17:00", estado:r.estado, _raw:r })))
   }
-  useEffect(()=>{ fetchAll() },[])
+  useEffect(()=>{
+    (async()=>{
+      try{
+        const auth=JSON.parse(localStorage.getItem("asisten-auth")||"{}")
+        if(auth.email){
+          const {data:me}=await supabase.from("profiles").select("company_id").eq("email",auth.email).single()
+          if(me?.company_id){ setCompanyId(me.company_id); fetchAll(me.company_id); return }
+        }
+      }catch{}
+      fetchAll()
+    })()
+  },[])
   const filtered = personas.filter(p=> p.nombre.toLowerCase().includes(q.toLowerCase()))
 
   const handleCreate=async()=>{
     if(!form.nombres || !form.apellidos) return toast.error("Nombres y apellidos requeridos")
-    const base={ company_id:COMPANY_ID, dni:form.dni||null, nombres:form.nombres, apellidos:form.apellidos, email:email||null, movil:form.movil||null, tipo, area:form.area, cargo:form.cargo, estado:"Activo" } as any
+    const base={ company_id:companyId, dni:form.dni||null, nombres:form.nombres, apellidos:form.apellidos, email:email||null, movil:form.movil||null, tipo, area:form.area, cargo:form.cargo, estado:"Activo", rol: tipo==="Empleado"?"empleado":"practicante" } as any
     if(editId){
       const {error}=await supabase.from("profiles").update({...base, company_id:undefined}).eq("id",editId)
       if(error) return toast.error(error.message)
@@ -77,7 +90,7 @@ export default function PersonalPage(){
       </Tabs.Panel>
       <Tabs.Panel id="gestion" className="pt-4"><CustomCells data={filtered as any}/></Tabs.Panel>
     </Tabs>
-    <Modal isOpen={confirmOpen} onOpenChange={setConfirmOpen}><Modal.Backdrop><Modal.Container size="md"><Modal.Dialog><Modal.CloseTrigger/><Modal.Header><Modal.Heading>¿Eliminar todo el personal?</Modal.Heading><p className="text-sm text-muted">Esta acción se audita y elimina a todos de todas las tablas y del sistema. No se puede deshacer.</p></Modal.Header><Modal.Footer><Button variant="secondary" onPress={()=>setConfirmOpen(false)}>Cancelar</Button><Button variant="danger" onPress={async()=>{ const {error}=await supabase.from("profiles").delete().eq("company_id",COMPANY_ID); if(error) return toast.error(error.message); toast.success("Eliminado"); setConfirmOpen(false); fetchAll()}}>Eliminar todo</Button></Modal.Footer></Modal.Dialog></Modal.Container></Modal.Backdrop></Modal>
+    <Modal isOpen={confirmOpen} onOpenChange={setConfirmOpen}><Modal.Backdrop><Modal.Container size="md"><Modal.Dialog><Modal.CloseTrigger/><Modal.Header><Modal.Heading>¿Eliminar todo el personal?</Modal.Heading><p className="text-sm text-muted">Esta acción se audita y elimina a todos de todas las tablas y del sistema. No se puede deshacer.</p></Modal.Header><Modal.Footer><Button variant="secondary" onPress={()=>setConfirmOpen(false)}>Cancelar</Button><Button variant="danger" onPress={async()=>{ const {error}=await supabase.from("profiles").delete().eq("company_id",companyId).neq("rol","dev"); if(error) return toast.error(error.message); toast.success("Eliminado"); setConfirmOpen(false); fetchAll()}}>Eliminar todo</Button></Modal.Footer></Modal.Dialog></Modal.Container></Modal.Backdrop></Modal>
     <Modal isOpen={open} onOpenChange={setOpen}>
       <Modal.Backdrop><Modal.Container size="md"><Modal.Dialog><Modal.CloseTrigger/><Modal.Header><Modal.Heading>Crear personal</Modal.Heading><p className="text-sm text-muted">Se genera acceso automático a su dashboard (diferente al admin) vinculado a asistencias/horarios.</p></Modal.Header>
       <Modal.Body><div className="space-y-5">
