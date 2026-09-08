@@ -56,6 +56,7 @@ function ProfileMenu(){
 
 export default function PanelLayout({children}:{children:React.ReactNode}){
   const pathname=usePathname()
+  if(pathname==="/login") return <>{children}</>
   const { theme, setTheme } = useTheme()
   const [open,setOpen]=React.useState(true)
   React.useEffect(()=>{const s=localStorage.getItem("sb-sidebar-open"); if(s!==null) setOpen(s==="1")},[])
