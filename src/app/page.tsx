@@ -1,7 +1,7 @@
 "use client"
 import { useEffect, useState } from "react"
 import { MinimalistDashboardView } from "@/components/dashboard/minimalist/minimalist-dashboard-view"
-import { Users, Clock, AlertTriangle, FolderKanban, UserCheck, Plus, Calendar, FileText } from "lucide-react"
+import { Users, Clock, AlertTriangle, FolderKanban, UserCheck, Plus, Calendar, FileText, Activity } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 
 const COMPANY_ID="00000000-0000-0000-0000-000000000001"
@@ -15,8 +15,7 @@ export default function Page(){
   ])
   const [activities,setActivities]=useState<any[]>([])
 
-  useEffect(()=>{
-    (async()=>{
+  async function load(){
       const {count:personal}=await supabase.from("profiles").select("*",{count:"exact",head:true}).eq("company_id",COMPANY_ID)
       const today=new Date().toISOString().slice(0,10)
       const {count:presentes}=await supabase.from("asistencias").select("*",{count:"exact",head:true}).eq("company_id",COMPANY_ID).eq("fecha",today).eq("estado","Presente")
@@ -31,9 +30,13 @@ export default function Page(){
         {label:"Faltas", value:faltas||0, icon: AlertTriangle, trend:"Hoy"},
         {label:"Proyectos", value:proyectos||0, icon: FolderKanban, trend:`${avg}% avance`},
       ])
-      // actividades vacías si no hay data
-      setActivities([])
-    })()
+      const {data:acts}=await supabase.from("audit_logs").select("*").eq("company_id",COMPANY_ID).order("created_at",{ascending:false}).limit(5)
+      setActivities((acts||[]).map((a:any)=>({ id:a.id, title:`${a.accion} ${a.tabla}`, description:a.motivo||a.datos?.nombre||"", time:new Date(a.created_at).toLocaleTimeString("es-PE",{hour:"2-digit",minute:"2-digit"}), icon: Activity })))
+  }
+  useEffect(()=>{
+    load()
+    const ch=supabase.channel("dashboard-realtime").on("postgres_changes",{event:"*",schema:"public",table:"asistencias"},load).on("postgres_changes",{event:"*",schema:"public",table:"profiles"},load).on("postgres_changes",{event:"*",schema:"public",table:"proyectos"},load).on("postgres_changes",{event:"*",schema:"public",table:"incidencias"},load).on("postgres_changes",{event:"*",schema:"public",table:"audit_logs"},load).subscribe()
+    return()=>{ supabase.removeChannel(ch) }
   },[])
 
   return <MinimalistDashboardView
