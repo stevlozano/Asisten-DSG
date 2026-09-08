@@ -28,11 +28,15 @@ const mobileItems = [
   {title:"Reportes", href:"/reportes", icon:BarChart3},
 ]
 function ProfileMenu(){
+  const [auth,setAuth]=React.useState<any>({})
+  React.useEffect(()=>{ try{ setAuth(JSON.parse(localStorage.getItem("asisten-auth")||"{}"))}catch{}},[])
+  const name = auth.nombres ? `${auth.nombres}` : auth.email?.includes("dev") ? "Stev Lozano" : "Ing. Omar"
+  const roleLabel = auth.rol==="dev" ? "DEV" : auth.rol==="admin" ? "Administrador" : auth.role || "Administrador"
   return (
     <Dropdown>
       <Button variant="ghost" className="flex items-center gap-3 h-auto py-2.5 px-4 rounded-full">
-        <Avatar color="accent" size="sm"><Avatar.Fallback><Person/></Avatar.Fallback><Avatar.Image src="https://img.heroui.chat/image/avatar?w=400&h=400&u=16" alt="Ing. Omar"/></Avatar>
-        <div className="hidden sm:flex flex-col leading-none text-left"><span className="text-sm font-medium">Ing. Omar</span><span className="text-xs text-muted">Administrador</span></div>
+        <Avatar color="accent" size="sm"><Avatar.Fallback><Person/></Avatar.Fallback><Avatar.Image src="https://img.heroui.chat/image/avatar?w=400&h=400&u=16" alt={name}/></Avatar>
+        <div className="hidden sm:flex flex-col leading-none text-left"><span className="text-sm font-medium">{name}</span><span className="text-xs text-muted">{roleLabel}</span></div>
       </Button>
       <Dropdown.Popover>
         <Dropdown.Menu onAction={(key)=>{ if(key==="perfil") window.location.href="/perfil"; if(key==="config") window.location.href="/configuracion"; if(key==="salir") window.location.href="/login"}}>
@@ -63,7 +67,10 @@ export default function PanelLayout({children}:{children:React.ReactNode}){
   const [rol,setRol]=React.useState("admin")
   React.useEffect(()=>{const s=localStorage.getItem("sb-sidebar-open"); if(s!==null) setOpen(s==="1"); try{ const a=JSON.parse(localStorage.getItem("asisten-auth")||"{}"); if(a.rol) setRol(a.rol); if(a.rol==="dev"||a.email==="stev@dsg.pe"||a.email==="stev.lozano.pianchachi@dsg.pe") {setIsDev(true); setRol("dev")}}catch{}})
   const visibleSections = rol==="empleado" ? [{title:"Principal", items:[{title:"Dashboard", href:"/", icon:LayoutDashboard}]},{title:"Mi espacio", items:[{title:"Mi asistencia", href:"/asistencias", icon:Clock},{title:"Mi horario", href:"/horarios", icon:Calendar},{title:"Mis incidencias", href:"/incidencias", icon:AlertTriangle}]}] : rol==="practicante" ? [{title:"Principal", items:[{title:"Dashboard", href:"/", icon:LayoutDashboard}]},{title:"Mi espacio", items:[{title:"Mi proyecto", href:"/proyectos", icon:FolderKanban},{title:"Seguimiento", href:"/seguimiento", icon:Activity},{title:"Mi asistencia", href:"/asistencias", icon:Clock}]}] : navSections
-  const displaySections = isDev ? [{title:"DEV", items:[{title:"Dashboard DEV", href:"/", icon:Shield},{title:"Admins / Empresas", href:"/dev", icon:Users}]}] : visibleSections
+  const displaySections = isDev ? [
+    {title:"DEV", items:[{title:"Dashboard DEV", href:"/", icon:Shield},{title:"Admins / Empresas", href:"/dev", icon:Users}]},
+    {title:"Sistema", items:[{title:"Auditoría", href:"/reportes", icon:Activity},{title:"Configuración global", href:"/configuracion", icon:Settings}]},
+  ] : visibleSections
   const isActive=(h:string)=> pathname===h || (h!=="/" && pathname.startsWith(h+"/"))
   return (
     <div className="flex h-screen overflow-hidden" style={{}}>
