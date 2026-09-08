@@ -4,7 +4,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { motion, AnimatePresence } from "framer-motion"
-import { LayoutDashboard, Users, Clock, Calendar, AlertTriangle, FolderKanban, Activity, BarChart3, Settings, ChevronLeft, User, LogOut } from "lucide-react"
+import { LayoutDashboard, Users, Clock, Calendar, AlertTriangle, FolderKanban, Activity, BarChart3, Settings, ChevronLeft, User, LogOut, Shield } from "lucide-react"
 import { Avatar, Button, Dropdown, Label } from "@heroui/react"
 import { MobileNavbar } from "@/components/ui/mobile-navbar"
 import { useTheme } from "next-themes"
@@ -59,13 +59,15 @@ export default function PanelLayout({children}:{children:React.ReactNode}){
   if(pathname==="/login") return <>{children}</>
   const { theme, setTheme } = useTheme()
   const [open,setOpen]=React.useState(true)
-  React.useEffect(()=>{const s=localStorage.getItem("sb-sidebar-open"); if(s!==null) setOpen(s==="1")},[])
+  const [isDev,setIsDev]=React.useState(false)
+  React.useEffect(()=>{const s=localStorage.getItem("sb-sidebar-open"); if(s!==null) setOpen(s==="1"); try{ const a=JSON.parse(localStorage.getItem("asisten-auth")||"{}"); if(a.rol==="dev"||a.email==="stev@dsg.pe") setIsDev(true)}catch{}}
   const isActive=(h:string)=> pathname===h || (h!=="/" && pathname.startsWith(h+"/"))
   return (
     <div className="flex h-screen overflow-hidden" style={{}}>
       <aside className={cn("hidden md:flex flex-col h-screen shrink-0 bg-white dark:bg-black transition-[width] duration-280 ease-[cubic-bezier(0.22,1,0.36,1)]", open?"w-[240px]":"w-[64px]")}>
         <div className={cn("flex items-center h-14 px-3 shrink-0 font-black tracking-tight text-sm", !open&&"justify-center")}>{open?"ASISTEN-DSG":"A"}</div>
         <nav className={cn("flex-1 overflow-y-auto overflow-x-hidden py-3", open?"px-2 space-y-4":"px-2 space-y-2")}>
+          {isDev && <div className="space-y-1"><h3 className="px-2.5 text-[10px] font-semibold uppercase tracking-wider text-black/40 dark:text-white/40">DEV</h3><Link href="/dev" className={cn("flex items-center gap-2.5 h-9 px-2.5 rounded-full text-sm", isActive("/dev")?"bg-black dark:bg-white text-white dark:text-black":"text-black/60 dark:text-white/70 hover:bg-black/5")}><Shield className="h-4 w-4"/> {open&&"Admins"}</Link></div>}
           {navSections.map((s:any)=>(
             <div key={s.title} className="space-y-1">
               {open && <h3 className="px-2.5 text-[10px] font-semibold uppercase tracking-wider text-black/40 dark:text-white/40">{s.title}</h3>}
