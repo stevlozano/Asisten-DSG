@@ -60,7 +60,7 @@ export default function PanelLayout({children}:{children:React.ReactNode}){
   const { theme, setTheme } = useTheme()
   const [open,setOpen]=React.useState(true)
   const [isDev,setIsDev]=React.useState(false)
-  React.useEffect(()=>{const s=localStorage.getItem("sb-sidebar-open"); if(s!==null) setOpen(s==="1"); try{ const a=JSON.parse(localStorage.getItem("asisten-auth")||"{}"); if(a.rol==="dev"||a.email==="stev@dsg.pe") setIsDev(true)}catch{}}
+  React.useEffect(()=>{const s=localStorage.getItem("sb-sidebar-open"); if(s!==null) setOpen(s==="1"); try{ const a=JSON.parse(localStorage.getItem("asisten-auth")||"{}"); if(a.rol==="dev"||a.email==="stev@dsg.pe") setIsDev(true)}catch{}})
   const isActive=(h:string)=> pathname===h || (h!=="/" && pathname.startsWith(h+"/"))
   return (
     <div className="flex h-screen overflow-hidden" style={{}}>
