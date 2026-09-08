@@ -1,16 +1,44 @@
 "use client"
+import { useEffect, useState } from "react"
 import { MinimalistDashboardView } from "@/components/dashboard/minimalist/minimalist-dashboard-view"
-import { Users, Clock, AlertTriangle, FolderKanban, UserCheck, Plus, Search, Calendar, FileText, Activity } from "lucide-react"
+import { Users, Clock, AlertTriangle, FolderKanban, UserCheck, Plus, Calendar, FileText } from "lucide-react"
+import { supabase } from "@/lib/supabase"
+
+const COMPANY_ID="00000000-0000-0000-0000-000000000001"
 export default function Page(){
+  const [metrics,setMetrics]=useState([
+    {label:"Personal", value:0, icon: Users, trend:"0 total"},
+    {label:"Presentes", value:0, icon: UserCheck, trend:"Hoy", trendUp:true},
+    {label:"Tardanzas", value:0, icon: Clock, trend:"Hoy"},
+    {label:"Faltas", value:0, icon: AlertTriangle, trend:"Hoy"},
+    {label:"Proyectos", value:0, icon: FolderKanban, trend:"0% avance"},
+  ])
+  const [activities,setActivities]=useState<any[]>([])
+
+  useEffect(()=>{
+    (async()=>{
+      const {count:personal}=await supabase.from("profiles").select("*",{count:"exact",head:true}).eq("company_id",COMPANY_ID)
+      const today=new Date().toISOString().slice(0,10)
+      const {count:presentes}=await supabase.from("asistencias").select("*",{count:"exact",head:true}).eq("company_id",COMPANY_ID).eq("fecha",today).eq("estado","Presente")
+      const {count:tardanzas}=await supabase.from("asistencias").select("*",{count:"exact",head:true}).eq("company_id",COMPANY_ID).eq("fecha",today).eq("estado","Tardanza")
+      const {count:faltas}=await supabase.from("asistencias").select("*",{count:"exact",head:true}).eq("company_id",COMPANY_ID).eq("fecha",today).eq("estado","Falta")
+      const {count:proyectos, data:proj}=await supabase.from("proyectos").select("avance",{count:"exact"}).eq("company_id",COMPANY_ID)
+      const avg = proj?.length ? Math.round(proj.reduce((a:number,b:any)=>a+(b.avance||0),0)/proj.length) : 0
+      setMetrics([
+        {label:"Personal", value:personal||0, icon: Users, trend:`${personal||0} total`},
+        {label:"Presentes", value:presentes||0, icon: UserCheck, trend:"Hoy", trendUp:true},
+        {label:"Tardanzas", value:tardanzas||0, icon: Clock, trend:"Hoy"},
+        {label:"Faltas", value:faltas||0, icon: AlertTriangle, trend:"Hoy"},
+        {label:"Proyectos", value:proyectos||0, icon: FolderKanban, trend:`${avg}% avance`},
+      ])
+      // actividades vacías si no hay data
+      setActivities([])
+    })()
+  },[])
+
   return <MinimalistDashboardView
     userName="Ing. Omar"
-    metrics={[
-      {label:"Personal", value:42, icon: Users, trend:"42 total"},
-      {label:"Presentes", value:35, icon: UserCheck, trend:"Hoy", trendUp:true},
-      {label:"Tardanzas", value:4, icon: Clock, trend:"Hoy"},
-      {label:"Faltas", value:3, icon: AlertTriangle, trend:"Hoy"},
-      {label:"Proyectos", value:8, icon: FolderKanban, trend:"65% avance"},
-    ]}
+    metrics={metrics}
     quickActions={[
       {label:"Agregar personal", desc:"Registrar empleado o practicante", icon: Plus, href:"/personal"},
       {label:"Registrar asistencia", desc:"Entrada / salida del día", icon: Clock, href:"/asistencias"},
@@ -19,11 +47,6 @@ export default function Page(){
       {label:"Proyectos", desc:"Seguimiento de practicantes", icon: FolderKanban, href:"/proyectos"},
       {label:"Reportes", desc:"Exportar PDF / Excel", icon: FileText, href:"/reportes"},
     ]}
-    activities={[
-      {id:"1", title:"Carlos Mendoza registró entrada", description:"08:07 - a tiempo · Desarrollo", time:"Hace 12m", icon: UserCheck},
-      {id:"2", title:"Tardanza detectada", description:"José Ramos 08:17 (17 min) · Incidencia pendiente", time:"Hace 28m", icon: Clock},
-      {id:"3", title:"Proyecto próximo a vencer", description:"Sistema Inventario · 65% · vence 20 sep", time:"Hace 1h", icon: FolderKanban},
-      {id:"4", title:"Nueva incidencia", description:"Ana Torres no registró salida ayer", time:"Hace 3h", icon: AlertTriangle},
-    ]}
+    activities={activities}
   />
 }
