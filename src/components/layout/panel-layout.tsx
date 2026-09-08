@@ -60,7 +60,9 @@ export default function PanelLayout({children}:{children:React.ReactNode}){
   const { theme, setTheme } = useTheme()
   const [open,setOpen]=React.useState(true)
   const [isDev,setIsDev]=React.useState(false)
-  React.useEffect(()=>{const s=localStorage.getItem("sb-sidebar-open"); if(s!==null) setOpen(s==="1"); try{ const a=JSON.parse(localStorage.getItem("asisten-auth")||"{}"); if(a.rol==="dev"||a.email==="stev@dsg.pe") setIsDev(true)}catch{}})
+  const [rol,setRol]=React.useState("admin")
+  React.useEffect(()=>{const s=localStorage.getItem("sb-sidebar-open"); if(s!==null) setOpen(s==="1"); try{ const a=JSON.parse(localStorage.getItem("asisten-auth")||"{}"); if(a.rol) setRol(a.rol); if(a.rol==="dev"||a.email==="stev@dsg.pe"||a.email==="stev.lozano.pianchachi@dsg.pe") {setIsDev(true); setRol("dev")}}catch{}})
+  const visibleSections = rol==="empleado" ? [{title:"Principal", items:[{title:"Dashboard", href:"/", icon:LayoutDashboard}]},{title:"Mi espacio", items:[{title:"Mi asistencia", href:"/asistencias", icon:Clock},{title:"Mi horario", href:"/horarios", icon:Calendar},{title:"Mis incidencias", href:"/incidencias", icon:AlertTriangle}]}] : rol==="practicante" ? [{title:"Principal", items:[{title:"Dashboard", href:"/", icon:LayoutDashboard}]},{title:"Mi espacio", items:[{title:"Mi proyecto", href:"/proyectos", icon:FolderKanban},{title:"Seguimiento", href:"/seguimiento", icon:Activity},{title:"Mi asistencia", href:"/asistencias", icon:Clock}]}] : navSections
   const isActive=(h:string)=> pathname===h || (h!=="/" && pathname.startsWith(h+"/"))
   return (
     <div className="flex h-screen overflow-hidden" style={{}}>
@@ -68,7 +70,7 @@ export default function PanelLayout({children}:{children:React.ReactNode}){
         <div className={cn("flex items-center h-14 px-3 shrink-0 font-black tracking-tight text-sm", !open&&"justify-center")}>{open?"ASISTEN-DSG":"A"}</div>
         <nav className={cn("flex-1 overflow-y-auto overflow-x-hidden py-3", open?"px-2 space-y-4":"px-2 space-y-2")}>
           {isDev && <div className="space-y-1"><h3 className="px-2.5 text-[10px] font-semibold uppercase tracking-wider text-black/40 dark:text-white/40">DEV</h3><Link href="/dev" className={cn("flex items-center gap-2.5 h-9 px-2.5 rounded-full text-sm", isActive("/dev")?"bg-black dark:bg-white text-white dark:text-black":"text-black/60 dark:text-white/70 hover:bg-black/5")}><Shield className="h-4 w-4"/> {open&&"Admins"}</Link></div>}
-          {navSections.map((s:any)=>(
+          {visibleSections.map((s:any)=>(
             <div key={s.title} className="space-y-1">
               {open && <h3 className="px-2.5 text-[10px] font-semibold uppercase tracking-wider text-black/40 dark:text-white/40">{s.title}</h3>}
               {s.items.map((it:any)=>{
