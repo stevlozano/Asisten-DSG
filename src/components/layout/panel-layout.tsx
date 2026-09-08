@@ -69,7 +69,13 @@ export default function PanelLayout({children}:{children:React.ReactNode}){
       <aside className={cn("hidden md:flex flex-col h-screen shrink-0 bg-white dark:bg-black transition-[width] duration-280 ease-[cubic-bezier(0.22,1,0.36,1)]", open?"w-[240px]":"w-[64px]")}>
         <div className={cn("flex items-center h-14 px-3 shrink-0 font-black tracking-tight text-sm", !open&&"justify-center")}>{open?"ASISTEN-DSG":"A"}</div>
         <nav className={cn("flex-1 overflow-y-auto overflow-x-hidden py-3", open?"px-2 space-y-4":"px-2 space-y-2")}>
-          {isDev ? <div className="space-y-1"><h3 className="px-2.5 text-[10px] font-semibold uppercase tracking-wider text-black/40 dark:text-white/40">DEV</h3><Link href="/" className={cn("flex items-center gap-2.5 h-9 px-2.5 rounded-full text-sm", isActive("/")?"bg-black dark:bg-white text-white dark:text-black":"text-black/60 dark:text-white/70 hover:bg-black/5")}><Shield className="h-4 w-4"/> {open&&"Dashboard DEV"}</Link><Link href="/dev" className={cn("flex items-center gap-2.5 h-9 px-2.5 rounded-full text-sm", isActive("/dev")?"bg-black dark:bg-white text-white dark:text-black":"text-black/60 dark:text-white/70 hover:bg-black/5")}><Users className="h-4 w-4"/> {open&&"Admins / Empresas"}</Link></div> : <>{visibleSections.map((s:any)=>(
+          {isDev ? (
+            <div className="space-y-1">
+              <h3 className="px-2.5 text-[10px] font-semibold uppercase tracking-wider text-black/40 dark:text-white/40">DEV</h3>
+              <Link href="/" className={cn("flex items-center gap-2.5 h-9 px-2.5 rounded-full text-sm", isActive("/")?"bg-black dark:bg-white text-white dark:text-black":"text-black/60 dark:text-white/70 hover:bg-black/5")}><Shield className="h-4 w-4"/> {open&&"Dashboard DEV"}</Link>
+              <Link href="/dev" className={cn("flex items-center gap-2.5 h-9 px-2.5 rounded-full text-sm", isActive("/dev")?"bg-black dark:bg-white text-white dark:text-black":"text-black/60 dark:text-white/70 hover:bg-black/5")}><Users className="h-4 w-4"/> {open&&"Admins / Empresas"}</Link>
+            </div>
+          ) : visibleSections.map((s:any)=>(
             <div key={s.title} className="space-y-1">
               {open && <h3 className="px-2.5 text-[10px] font-semibold uppercase tracking-wider text-black/40 dark:text-white/40">{s.title}</h3>}
               {s.items.map((it:any)=>{
@@ -92,7 +98,7 @@ export default function PanelLayout({children}:{children:React.ReactNode}){
               {/* fix open state: wrap with bg */}
               {null}
             </div>
-          ))}</>
+          )))}
         </nav>
         <div className="p-2lack/5 space-y-1 shrink-0">
           <button onClick={()=>setOpen(v=>{const n=!v; localStorage.setItem("sb-sidebar-open",n?"1":"0"); return n})} className="w-full flex items-center gap-2.5 h-9 px-2.5 rounded-full text-sm text-black/60 hover:bg-black/5">
